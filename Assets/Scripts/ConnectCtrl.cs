@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine.UI;
 
 public enum RegionsCodes
 {
@@ -26,6 +27,9 @@ public class ConnectCtrl : MonoBehaviourPunCallbacks
     #region Private Fields
 
     string gameVersion = "1";
+    const string RegionPrefKey = "defaultRegion";
+
+    bool IsFiring;
 
 
     #endregion
@@ -44,12 +48,19 @@ public class ConnectCtrl : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        
+
     }
 
 
     #endregion
 
+    #region Private Methods
+    void SetButton(bool state, string msg)
+    {
+        GameObject.Find("Button").GetComponentInChildren<Text>().text = msg;
+        GameObject.Find("Button").GetComponent<Button>().enabled = state;
+    }
+    #endregion
 
     #region Public Methods
 
@@ -61,18 +72,30 @@ public class ConnectCtrl : MonoBehaviourPunCallbacks
         {
             // #Critical we need at this point to attempt joining a Random Room. If it fails, we'll get notified in OnJoinRandomFailed() and we'll create one.
             PhotonNetwork.JoinRandomRoom();
+            SetButton(false, "FINDING MATCH...");
+
         }
         else
         {
             // #Critical, we must first and foremost connect to Photon Online Server.
             PhotonNetwork.ConnectUsingSettings();
             PhotonNetwork.GameVersion = gameVersion;
+            SetButton(false, "CONNECTING...");
         }
+        
     }
 
-    public void SetRegion()
+    public void FindMatch()
     {
-        int index = GameObject.Find("Dropdown").GetComponent<UnityEngine.UI.Dropdown>().value;
+        // we check if we are connected or not, we join if we are , else we initiate the connection to the server.
+        if (PhotonNetwork.IsConnected)
+        {
+            // #Critical we need at this point to attempt joining a Random Room. If it fails, we'll get notified in OnJoinRandomFailed() and we'll create one.
+            PhotonNetwork.JoinRandomRoom();
+        }
+    }
+    public void SetRegion(int index)
+    {
         RegionsCodes region = (RegionsCodes)index;
         if (region == RegionsCodes.AUTO)
             regionCode = null;
@@ -91,6 +114,7 @@ public class ConnectCtrl : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         Debug.Log("PUN Basics Tutorial/Launcher: OnConnectedToMaster() was called by PUN");
+        SetButton(true, "LETS BATTLE");
     }
 
 
@@ -110,17 +134,24 @@ public class ConnectCtrl : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         Debug.Log("PUN Basics Tutorial/Launcher: OnJoinedRoom() called by PUN. Now this client is in a room.");
+        SetButton(false, "WATING PLAYERS");
+
+
+
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        Debug.Log(newPlayer.NickName+" has enter the room, Players Count: "+ PhotonNetwork.CurrentRoom.PlayerCount);
 
-        if (PhotonNetwork.CurrentRoom.PlayerCount == 4)
+        Debug.Log(newPlayer.NickName+ " Se Ha unido al cuarto, Players: "+PhotonNetwork.CurrentRoom.PlayerCount);
+
+
+        if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
             PhotonNetwork.LoadLevel("Match");
         }
     }
+
 
 
 

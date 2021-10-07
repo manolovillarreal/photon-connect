@@ -116,7 +116,19 @@ namespace Complete
             return size;
         }
 
+        public void Init()
+        {
 
+            var players = GameObject.FindGameObjectsWithTag("Player");
+
+            m_Targets = new Transform[players.Length];
+            for (int i = 0; i < players.Length; i++)
+            {
+                m_Targets[i] = players[i].transform;
+            }
+
+            //isReady = true;
+        }
         public void SetStartPositionAndSize ()
         {
             // Find the desired position.
